@@ -1,0 +1,2 @@
+# exotools_sources
+exotoolsのソースコード、およびVisualStudioプロジェクト

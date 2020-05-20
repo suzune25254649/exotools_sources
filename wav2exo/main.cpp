@@ -125,13 +125,15 @@ uint32_t CalcWavLength(const char *filename, const uint32_t rate)
 	{
 		return 0;
 	}
+	uint32_t sizeHeader;
+	fseek(fr, 16, SEEK_SET);
+	fread(&sizeHeader, 1, sizeof(sizeHeader), fr);
 
 	PCMWAVEFORMAT header;
-	fseek(fr, 20, SEEK_SET);
 	fread(&header, 1, sizeof(header), fr);
 
 	uint32_t sizeData;
-	fseek(fr, 40, SEEK_SET);
+	fseek(fr, 20 + sizeHeader + 4, SEEK_SET);
 	fread(&sizeData, 1, sizeof(sizeData), fr);
 	fclose(fr);
 

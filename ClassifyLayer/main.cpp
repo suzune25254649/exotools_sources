@@ -12,7 +12,7 @@ enum TextType
 	TT_CEVIO,
 };
 
-extern TextType GetTextType(std::string filepath, const std::vector<std::string> &names);
+extern TextType GetTextType(std::string filepath, const std::vector< std::pair<std::string, int> > &names);
 
 int main(int argc, char **argv)
 {
@@ -48,7 +48,10 @@ int main(int argc, char **argv)
 	const std::string filepathExoSource = inputs[0];
 
 	//	レイヤー分け設定のテキストを分析する.
-	std::vector<std::string> names;
+	//	pair.first == 名前.
+	//	pair.second == レイヤー番号.
+	//	名前は先頭一致のため、vectorの中身を「名前が長い順」で並び替える.
+	std::vector< std::pair<std::string, int> > names;
 	{
 		std::string text;
 		if (LoadText(dirnameSetting + "\\" + filenameSetting, text))
@@ -56,15 +59,22 @@ int main(int argc, char **argv)
 			fprintf(stderr, "error: EXEと同じフォルダに\"%s\"がありません。\n", filenameSetting.c_str());
 			return 2;
 		}
+		int i = 0;
 		auto lines = split(text, "\n");
 		for (auto &line : lines)
 		{
 			auto s = trim(line);
 			if (!s.empty())
 			{
-				names.push_back(s);
+				names.push_back(std::pair<std::string, int>(s, i));
+				++i;
 			}
 		}
+		std::sort(names.begin(), names.end(),
+			[](const std::pair<std::string, int> &lh, const std::pair<std::string, int> &rh)
+		{
+			return rh.first.length() < lh.first.length();
+		});
 	}
 
 	ExoFile exo;
@@ -125,7 +135,7 @@ int main(int argc, char **argv)
 				auto pos = text.find("＞");
 				if (std::string::npos != pos)
 				{
-					talker = text.substr(0, pos);
+					talker = trim(text.substr(0, pos));
 				}
 			}
 			else if (TT_CEVIO == type)
@@ -144,15 +154,11 @@ int main(int argc, char **argv)
 
 			//	話者を名前リストから探し、レイヤー番号を書き換える.
 			size_t layer = names.size();
-			for (size_t i = 0; i < names.size(); ++i)
+			for (auto it = names.cbegin(); names.cend() != it; ++it)
 			{
-				std::smatch match;
-
-				//	正規表現で実装していたけど、そこまでやらずとも先頭一致だけでいいや.
-//				if (!names[i].empty() && std::regex_search(talker, match, std::regex(names[i])))
-				if (!names[i].empty() && 0 == talker.find(names[i]))
+				if (!it->first.empty() && 0 == talker.find(it->first))
 				{
-					layer = i;
+					layer = it->second;
 					break;
 				}
 			}
@@ -174,7 +180,7 @@ int main(int argc, char **argv)
 }
 
 
-TextType GetTextType(std::string filepath, const std::vector<std::string> &names)
+TextType GetTextType(std::string filepath, const std::vector< std::pair<std::string, int> > &names)
 {
 	std::string text;
 	if (LoadText(filepath, text))
@@ -184,18 +190,18 @@ TextType GetTextType(std::string filepath, const std::vector<std::string> &names
 
 	std::string str;
 
-	//	ボイロ形式か確認. 最初のテキストに"＞"が存在し、かつプリセット名が名前リストと一致すればボイロ形式.
+	//	ボイロ形式か確認. 最初のテキストに"＞"が存在し、かつプリセット名が名前リストと先頭一致すればボイロ形式.
 	{
 		auto pos = text.find("＞");
 		if (std::string::npos != pos)
 		{
-			str = text.substr(0, pos);
-			for (size_t i = 0; i < names.size(); ++i)
+			str = trim(text.substr(0, pos));
+			for (auto it = names.cbegin(); names.cend() != it; ++it)
 			{
-				std::smatch match;
-				if (!names[i].empty() && std::regex_search(str, match, std::regex(names[i])))
+				if (!it->first.empty() && 0 == str.find(it->first))
 				{
 					return TT_VOICEROID;
+					break;
 				}
 			}
 		}
@@ -207,8 +213,7 @@ TextType GetTextType(std::string filepath, const std::vector<std::string> &names
 		str = match[2];
 		for (size_t i = 0; i < names.size(); ++i)
 		{
-			std::smatch match;
-			if (!names[i].empty() && std::regex_search(str, match, std::regex(names[i])))
+			if (!names[i].first.empty() && 0 == str.find(names[i].first))
 			{
 				return TT_CEVIO;
 			}

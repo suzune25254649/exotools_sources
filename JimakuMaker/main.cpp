@@ -65,7 +65,12 @@ int main(int argc, char **argv)
 			//	字幕内容をテキストファイルから取得する.
 			std::wstring jimaku;
 			{
-				std::string filepath = *it.params[0].get("file");
+				auto value = it.params[0].get("file");
+				if (nullptr == value)
+				{
+					continue;
+				}
+				std::string filepath = *value;
 				filepath = filepath.substr(0, filepath.size() - 3) + "txt";
 				std::string text;
 				if (LoadText(filepath, text))
@@ -84,6 +89,10 @@ int main(int argc, char **argv)
 
 			//	セリフ部分を置換.
 			jimaku = replaceAll(TextToWString(*obj.params[0].get("text")), L"セリフ", jimaku);
+
+			//	改行コードを"\r\n"に統一する.
+			jimaku = replaceAll(jimaku, L"\r\n", L"\n");
+			jimaku = replaceAll(jimaku, L"\n", L"\r\n");
 
 			obj.header.set("start", *it.header.get("start"));
 			obj.header.set("end", *it.header.get("end"));

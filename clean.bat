@@ -12,6 +12,9 @@ rmdir /s /q JimakuMaker\Release
 rmdir /s /q lipsyncer\Debug
 rmdir /s /q lipsyncer\Release
 
+rmdir /s /q MultiSliderMaker\Debug
+rmdir /s /q MultiSliderMaker\Release
+
 rmdir /s /q PackLayer\Debug
 rmdir /s /q PackLayer\Release
 

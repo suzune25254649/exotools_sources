@@ -25,10 +25,42 @@ std::vector<std::string> split(std::string text, std::string separator)
 	return result;
 }
 
+std::vector<std::wstring> split(std::wstring text, std::wstring separator)
+{
+	std::vector<std::wstring> result;
+
+	auto offset = std::wstring::size_type(0);
+	while (true)
+	{
+		auto pos = text.find(separator, offset);
+		if (std::wstring::npos == pos)
+		{
+			result.push_back(text.substr(offset));
+			break;
+		}
+		result.push_back(text.substr(offset, pos - offset));
+		offset = pos + separator.length();
+	}
+	return result;
+}
+
 std::string trim(const std::string &string, const char *trimCharacterList = " \t\f\v\r\n")
 {
 	std::string result;
 	std::string::size_type left = string.find_first_not_of(trimCharacterList);
+
+	if (std::string::npos != left)
+	{
+		std::string::size_type right = string.find_last_not_of(trimCharacterList);
+		return string.substr(left, right - left + 1);
+	}
+	return result;
+}
+
+std::wstring trim(const std::wstring &string, const wchar_t *trimCharacterList = L" \t\f\v\r\n")
+{
+	std::wstring result;
+	std::wstring::size_type left = string.find_first_not_of(trimCharacterList);
 
 	if (std::string::npos != left)
 	{
@@ -59,7 +91,81 @@ std::wstring replaceAll(std::wstring text, std::wstring from, std::wstring to) {
 	return text;
 }
 
-errno_t LoadText(std::string filename, std::string &output)
+std::wstring StringToWString(std::string text)
+{
+	std::wstring result;
+	int n = ::MultiByteToWideChar(CP_ACP, 0, text.c_str(), -1, NULL, 0);
+	if (0 == n)
+	{
+		return result;
+	}
+
+	auto p = std::unique_ptr<wchar_t[]>(new wchar_t[n]);
+	n = ::MultiByteToWideChar(CP_ACP, 0, text.c_str(), -1, p.get(), n);
+	if (0 == n)
+	{
+		return result;
+	}
+	result = p.get();
+	return result;
+}
+
+std::string WStringToString(std::wstring text)
+{
+	std::string result;
+	int n = ::WideCharToMultiByte(CP_ACP, 0, text.c_str(), -1, NULL, 0, NULL, NULL);
+	if (0 == n)
+	{
+		return result;
+	}
+
+	auto p = std::unique_ptr<char[]>(new char[n]);
+	n = ::WideCharToMultiByte(CP_ACP, 0, text.c_str(), -1, p.get(), n, NULL, NULL);
+	if (0 == n)
+	{
+		return result;
+	}
+	result = p.get();
+	return result;
+}
+
+errno_t HaveUTF8BOM(std::string filename)
+{
+	FILE *fr = nullptr;
+	if (fopen_s(&fr, filename.c_str(), "rb"))
+	{
+		return -1;
+	}
+	uint8_t buffer[3];
+	if (0 == fread(buffer, sizeof(buffer), 1, fr))
+	{
+		fclose(fr);
+		return 1;
+	}
+	fclose(fr);
+
+	return (0xEF == buffer[0] && 0xBB == buffer[1] && 0xBF == buffer[2]) ? 0 : 1;
+}
+
+errno_t HaveUTF16BOM(std::string filename)
+{
+	FILE *fr = nullptr;
+	if (fopen_s(&fr, filename.c_str(), "rb"))
+	{
+		return -1;
+	}
+	uint8_t buffer[2];
+	if (0 == fread(buffer, sizeof(buffer), 1, fr))
+	{
+		fclose(fr);
+		return 1;
+	}
+	fclose(fr);
+
+	return (0xFF == buffer[0] && 0xFE == buffer[1]) ? 0 : 1;
+}
+
+errno_t LoadTextA(std::string filename, std::string &output)
 {
 	FILE *fr = nullptr;
 	if (fopen_s(&fr, filename.c_str(), "r"))
@@ -75,6 +181,43 @@ errno_t LoadText(std::string filename, std::string &output)
 	fclose(fr);
 	output = text;
 	return 0;
+}
+
+errno_t LoadTextW(std::string filename, std::wstring &output)
+{
+	FILE *fr = nullptr;
+	if (fopen_s(&fr, filename.c_str(), "r,ccs=UNICODE"))
+	{
+		return 1;
+	}
+	std::wstring text;
+	wchar_t buffer[1024];
+	while (nullptr != fgetws(buffer, sizeof(buffer), fr))
+	{
+		text += buffer;
+	}
+	fclose(fr);
+	output = text;
+	return 0;
+}
+
+errno_t LoadText(std::string filename, std::wstring &output)
+{
+	if (0 == HaveUTF16BOM(filename) || 0 == HaveUTF8BOM(filename))
+	{
+		return LoadTextW(filename, output);
+	}
+	else
+	{
+		std::string str;
+		errno_t err = LoadTextA(filename, str);
+		if (0 != err)
+		{
+			return err;
+		}
+		output = StringToWString(str);
+		return 0;
+	}
 }
 
 errno_t SaveText(const std::string &filename, const std::string &text)
@@ -135,41 +278,3 @@ struct AutoPause
 		::getc(stdin);
 	}
 };
-
-std::wstring StringToWString(std::string text)
-{
-	std::wstring result;
-	int n = ::MultiByteToWideChar(CP_ACP, 0, text.c_str(), -1, NULL, 0);
-	if (0 == n)
-	{
-		return result;
-	}
-
-	auto p = std::unique_ptr<wchar_t[]>(new wchar_t[n]);
-	n = ::MultiByteToWideChar(CP_ACP, 0, text.c_str(), -1, p.get(), n);
-	if (0 == n)
-	{
-		return result;
-	}
-	result = p.get();
-	return result;
-}
-
-std::string WStringToString(std::wstring text)
-{
-	std::string result;
-	int n = ::WideCharToMultiByte(CP_ACP, 0, text.c_str(), -1, NULL, 0, NULL, NULL);
-	if (0 == n)
-	{
-		return result;
-	}
-
-	auto p = std::unique_ptr<char[]>(new char[n]);
-	n = ::WideCharToMultiByte(CP_ACP, 0, text.c_str(), -1, p.get(), n, NULL, NULL);
-	if (0 == n)
-	{
-		return result;
-	}
-	result = p.get();
-	return result;
-}

@@ -107,7 +107,7 @@ std::string WStringToText(std::wstring str)
 errno_t LoadExoFile(std::string filename, ExoFile &output)
 {
 	std::string text;
-	auto err = LoadText(filename, text);
+	auto err = LoadTextA(filename, text);
 	if (0 != err)
 	{
 		return err;

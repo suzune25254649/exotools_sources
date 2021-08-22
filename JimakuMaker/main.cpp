@@ -72,13 +72,13 @@ int main(int argc, char **argv)
 				}
 				std::string filepath = *value;
 				filepath = filepath.substr(0, filepath.size() - 3) + "txt";
-				std::string text;
-				if (LoadText(filepath, text))
+
+				if (LoadText(filepath, jimaku))
 				{
 					fprintf(stderr, "error: \"%s\"が読み込めません。\n", filepath.c_str());
 					continue;
 				}
-				jimaku = StringToWString(trim(text));
+				jimaku = trim(jimaku);
 
 				auto pos = jimaku.find(L"＞");
 				if (std::wstring::npos != pos)

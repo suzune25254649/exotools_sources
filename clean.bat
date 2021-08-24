@@ -6,6 +6,9 @@ rmdir /s /q Release
 rmdir /s /q ClassifyLayer\Debug
 rmdir /s /q ClassifyLayer\Release
 
+rmdir /s /q ExtendObject\Debug
+rmdir /s /q ExtendObject\Release
+
 rmdir /s /q JimakuMaker\Debug
 rmdir /s /q JimakuMaker\Release
 

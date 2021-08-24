@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SliceObject", "SliceObject\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiSliderMaker", "MultiSliderMaker\MultiSliderMaker.vcxproj", "{220FFA86-DE75-4B12-A410-3360388FC2BD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExtendObject", "ExtendObject\ExtendObject.vcxproj", "{632A5A11-9E34-4D78-8D6F-BCEDFB608725}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -125,6 +127,18 @@ Global
 		{220FFA86-DE75-4B12-A410-3360388FC2BD}.Release|x64.Build.0 = Release|x64
 		{220FFA86-DE75-4B12-A410-3360388FC2BD}.Release|x86.ActiveCfg = Release|Win32
 		{220FFA86-DE75-4B12-A410-3360388FC2BD}.Release|x86.Build.0 = Release|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|Win32.ActiveCfg = Debug|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|Win32.Build.0 = Debug|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|x64.ActiveCfg = Debug|x64
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|x64.Build.0 = Debug|x64
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|x86.ActiveCfg = Debug|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Debug|x86.Build.0 = Debug|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|Win32.ActiveCfg = Release|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|Win32.Build.0 = Release|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|x64.ActiveCfg = Release|x64
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|x64.Build.0 = Release|x64
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|x86.ActiveCfg = Release|Win32
+		{632A5A11-9E34-4D78-8D6F-BCEDFB608725}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -60,12 +60,86 @@ int main(int argc, char **argv)
 		}
 		if (it.params[0].equals("_name", "音声ファイル"))
 		{
-			exoSetting.objects[0].header.set("start", *it.header.get("start"));
-			exoSetting.objects[0].header.set("end", *it.header.get("end"));
-			exoSetting.objects[0].header.set("layer", *it.header.get("layer"));
-			exoSetting.objects[0].params[0].set("param", "file=\"" + replaceAll(*it.params[0].get("file"), "\\", "\\\\") + "\"");
 
-			exoDest.objects.push_back(exoSetting.objects[0]);
+			//	*.patam.txtから、内容を取得する.
+			std::vector<int> params;
+			std::string filepath;
+			{
+				std::wstring text;
+				auto value = it.params[0].get("file");
+				if (nullptr == value)
+				{
+					continue;
+				}
+				filepath = value->substr(0, value->size() - 3) + "param.txt";
+
+				if (LoadText(filepath, text))
+				{
+					fprintf(stderr, "warning: \"%s\"が読み込めません。\n", filepath.c_str());
+					continue;
+				}
+				text = trim(text);
+				auto tokens = split(text, L" ");
+				for (auto &it : tokens)
+				{
+					it = trim(it);
+					if (L"" != it)
+					{
+						params.push_back(::_wtoi(it.c_str()));
+					}
+				}
+			}
+
+			ExoFile temp = exoSetting;
+			temp.objects[0].header.set("start", *it.header.get("start"));
+			temp.objects[0].header.set("end", *it.header.get("end"));
+			temp.objects[0].header.set("layer", *it.header.get("layer"));
+
+			size_t index = 0;
+			for (auto &it : temp.objects[0].params)
+			{
+				if (params.size() <= index)
+				{
+					break;
+				}
+
+				{
+					auto *str = it.get("name");
+					if (nullptr == str || "多目的スライダー@PSDToolKit" != *str)
+					{
+						continue;
+					}
+				}
+
+				//	1つの項目につき、トラックは4つまで.
+				for (int i = 0; i < 4 && index < params.size(); ++i, ++index)
+				{
+					std::string value = std::to_string(params[index]);
+					auto *str = it.get("track" + std::to_string(i));
+					if (nullptr != str)
+					{
+						auto tokens = split(*str, ",");
+						if (3 <= tokens.size())
+						{
+							it.set("track" + std::to_string(i), value + "," + value + "," + tokens[2]);
+						}
+						else
+						{
+							it.set("track" + std::to_string(i), value + "," + value + ",0");
+						}
+					}
+					else
+					{
+						it.set("track" + std::to_string(i), value + "," + value + ",0");
+					}
+				}
+			}
+			if (index < params.size())
+			{
+				fprintf(stderr, "warning: \"%s\"でパラメータが%d個指定されていますが、元となるexoファイルの多目的スライダーに充分なスライダーがありません。元となるexoファイルを拡張してください。\n", filepath.c_str(), params.size());
+				continue;
+			}
+			exoDest.objects.push_back(temp.objects[0]);
 		}
 	}
 

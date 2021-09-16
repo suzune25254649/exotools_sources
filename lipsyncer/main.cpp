@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 		{
 			continue;
 		}
-		if (it.params[0].equals("_name", "音声ファイル"))
+		if (it.params[0].equals("_name", "音声ファイル") && nullptr != it.params[0].get("file"))
 		{
 			exoSetting.objects[0].header.set("start", *it.header.get("start"));
 			exoSetting.objects[0].header.set("end", *it.header.get("end"));

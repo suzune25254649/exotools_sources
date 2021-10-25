@@ -7,7 +7,7 @@
 #include "../common/exo.h"
 #include "../common/args.h"
 
-extern uint32_t CalcWavLength(const char *filename, const uint32_t rate);
+extern uint32_t CalcWavLength(const char *filename, const uint32_t rate, const uint32_t scale);
 
 int main(int argc, char **argv)
 {
@@ -48,6 +48,7 @@ int main(int argc, char **argv)
 	}
 
 	const uint32_t rate = ::atoi(exoSetting.exedit.get("rate")->c_str());
+	const uint32_t scale = ::atoi(exoSetting.exedit.get("scale")->c_str());
 
 	ExoFile exoDest;
 	exoDest.exedit = exoSetting.exedit;
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 
 		for (auto itSrc : sources)
 		{
-			uint32_t length = CalcWavLength(itSrc.c_str(), rate);
+			uint32_t length = CalcWavLength(itSrc.c_str(), rate, scale);
 
 			char path[32768];
 			GetFullPathNameA(itSrc.c_str(), sizeof(path), path, nullptr);
@@ -115,10 +116,11 @@ int main(int argc, char **argv)
 /**
 音声ファイル(*.wav)を読み込み、その再生時間を動画でのフレーム数に変換する.
 @param	filename	音声ファイル名.
-@param	rate		動画の秒間フレームレート.
+@param	rate		動画の秒間フレームレート(exoファイルのexedit#rate)
+@param	scale		動画のフレームレートスケール(exoファイルのexedit#scale)
 @return				フレーム数.
 */
-uint32_t CalcWavLength(const char *filename, const uint32_t rate)
+uint32_t CalcWavLength(const char *filename, const uint32_t rate, const uint32_t scale)
 {
 	FILE *fr = nullptr;
 	if (fopen_s(&fr, filename, "rb"))
@@ -137,5 +139,5 @@ uint32_t CalcWavLength(const char *filename, const uint32_t rate)
 	fread(&sizeData, 1, sizeof(sizeData), fr);
 	fclose(fr);
 
-	return (rate * sizeData + (header.wf.nAvgBytesPerSec - 1)) / header.wf.nAvgBytesPerSec;
+	return (uint32_t)(((uint64_t)rate * (uint64_t)sizeData + ((uint64_t)header.wf.nAvgBytesPerSec - 1)) / (uint64_t)header.wf.nAvgBytesPerSec / (uint64_t)scale);
 }
